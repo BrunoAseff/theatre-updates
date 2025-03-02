@@ -4,6 +4,7 @@ export interface Movie {
   description: string;
   duration: string;
   trailerLink: string;
+  genre: string;
 }
 
 export interface TheaterData {

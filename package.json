@@ -6,6 +6,8 @@
   "scripts": {
     "scrape:balneario": "ts-node-dev --transpile-only --respawn src/scrapers/balneario.ts",
     "scrape:itajai": "ts-node-dev --transpile-only --respawn src/scrapers/itajai.ts",
+    "wednesday": "ts-node-dev --transpile-only src/scripts/wednesday.ts",
+    "thursday": "ts-node-dev --transpile-only src/scripts/thursday.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },

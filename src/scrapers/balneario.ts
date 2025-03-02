@@ -1,81 +1,211 @@
 import puppeteer from "puppeteer";
-import { Movie, TheaterData } from "../types";
-import { getGistData, updateGistData } from "../utils/gistStorage";
+import { Movie, GistContent } from "../types";
+import { autoScroll } from "../utils/utils";
 
-export async function scrapeBalneario(): Promise<Movie[]> {
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export async function scrapeBalneario(gistData: GistContent): Promise<{
+  newMovies: Movie[];
+  removedMovies: Movie[];
+}> {
   const browser = await puppeteer.launch({
-    headless: false, // Change to "new" for production
+    headless: false,
+    defaultViewport: null,
+    args: ["--start-maximized"],
   });
 
   try {
     const page = (await browser.pages())[0];
+    await page.setViewport({ width: 1920, height: 1080 });
+
+    let trailerLink = "";
+    page.on("request", (request) => {
+      const url = request.url();
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        trailerLink = url;
+      }
+    });
+
     await page.goto("https://www.balneariocamboriushopping.com.br/cinema", {
       waitUntil: "networkidle2",
       timeout: 60000,
     });
 
-    const gistData = await getGistData();
     const previousMovies = gistData.balneario.movies;
     const previousMovieNames = new Set(
-      previousMovies.map((movie: Movie) => movie.name)
+      previousMovies.map((movie) => movie.name)
+    );
+    const currentMovieNames = new Set<string>();
+    const newMovies: Movie[] = [];
+
+    await autoScroll(page);
+    await sleep(2000);
+
+    const movieNames = await page.$$eval("app-single-movie h3", (elements) =>
+      elements.map((el) => el.textContent?.trim() || "")
     );
 
-    const movieElements = await page.$$("app-single-movie");
-    const movies: Movie[] = [];
+    for (const name of movieNames) {
+      currentMovieNames.add(name);
+      trailerLink = "";
 
-    for (const movieElement of movieElements) {
-      const name = await movieElement.$eval(
-        "h3",
-        (el) => el.textContent?.trim() || ""
-      );
-      const coverImageUrl = await movieElement.$eval(
-        ".movie-poster-area img",
-        (img) => img.getAttribute("src") || ""
-      );
-      const descriptionPreview = await movieElement.$eval(
-        "p",
-        (p) => p.textContent?.trim() || ""
-      );
-      const duration = await movieElement.$eval(
-        ".movie-time li:nth-child(2)",
-        (li) => li.textContent?.trim() || ""
-      );
+      if (!previousMovieNames.has(name)) {
+        console.log(`Encontrado novo filme: ${name}`);
 
-      const isNewMovie = !previousMovieNames.has(name);
+        try {
+          await page.evaluate((movieName) => {
+            const movieElements = Array.from(
+              document.querySelectorAll("app-single-movie h3")
+            );
+            const targetElement = movieElements
+              .find((el) => el.textContent?.trim() === movieName)
+              ?.closest("app-single-movie");
+            if (targetElement) {
+              targetElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+            }
+          }, name);
 
-      const movie: Movie = {
-        name,
-        coverImageUrl,
-        description: descriptionPreview,
-        duration,
-        trailerLink: "",
-      };
+          await sleep(2000);
 
-      // For new movies, click "Ver mais" to get more details
-      if (isNewMovie) {
-        console.log(`Found new movie: ${name}. Clicking 'Ver mais'...`);
+          const movieInfo = await page.evaluate((movieName) => {
+            const movieElements = Array.from(
+              document.querySelectorAll("app-single-movie")
+            );
+            const movieElement = movieElements.find(
+              (el) => el.querySelector("h3")?.textContent?.trim() === movieName
+            );
 
-        // Click the "Ver mais" button for this movie
-        await movieElement.$eval(".read-more", (verMais) =>
-          (verMais as HTMLElement).click()
-        );
+            if (!movieElement) return null;
 
-        // You'll need to add code here to extract trailer link
-        // from the detailed view after clicking "Ver mais"
+            const coverImageUrl =
+              movieElement
+                .querySelector(".movie-poster-area img")
+                ?.getAttribute("src") || "";
+            const genre =
+              movieElement
+                .querySelector("ul.movie-time li:first-child")
+                ?.textContent?.trim() || "";
+            const duration =
+              movieElement
+                .querySelector("ul.movie-time li:nth-child(2)")
+                ?.textContent?.trim() || "";
+            const description =
+              movieElement.querySelector("p")?.textContent?.trim() || "";
 
-        // Add proper navigation back to the movie list if needed
+            const readMoreButton = movieElement.querySelector(
+              ".read-more"
+            ) as HTMLElement;
+            const hasDetails =
+              readMoreButton &&
+              !readMoreButton.getAttribute("href")?.includes("#");
+
+            return { coverImageUrl, genre, duration, description, hasDetails };
+          }, name);
+
+          if (!movieInfo) {
+            console.log(`Não foi possível encontrar informações para ${name}`);
+            continue;
+          }
+
+          let description = movieInfo.description;
+          let duration = movieInfo.duration;
+
+          if (movieInfo.hasDetails) {
+            await page.evaluate((movieName) => {
+              const movieElements = Array.from(
+                document.querySelectorAll("app-single-movie")
+              );
+              const movieElement = movieElements.find(
+                (el) =>
+                  el.querySelector("h3")?.textContent?.trim() === movieName
+              );
+              const readMoreButton = movieElement?.querySelector(
+                ".read-more"
+              ) as HTMLElement;
+              if (readMoreButton) readMoreButton.click();
+            }, name);
+
+            await sleep(3000);
+
+            try {
+              await page.waitForFunction(
+                () => {
+                  const el = document.querySelector(".sinopse");
+                  return el?.textContent?.length ?? 0 > 0;
+                },
+                { timeout: 5000 }
+              );
+
+              const detailedInfo = await page.evaluate(() => {
+                const description =
+                  document.querySelector(".sinopse")?.textContent?.trim() || "";
+                const duration =
+                  document
+                    .querySelector(".duration")
+                    ?.textContent?.replace("Duração:", "")
+                    .trim() || "";
+                return { description, duration };
+              });
+
+              description = detailedInfo.description;
+              duration = detailedInfo.duration;
+
+              await page.evaluate(() => {
+                const trailerButton = document.querySelector(
+                  "#ver-trailer"
+                ) as HTMLElement;
+                if (trailerButton) trailerButton.click();
+              });
+
+              await sleep(2000);
+            } catch (error) {
+              console.log(
+                `Não foi possível carregar detalhes extras para ${name}`
+              );
+            }
+
+            await page.goBack();
+            await sleep(3000);
+            await page.waitForSelector("app-single-movie", { timeout: 5000 });
+            await sleep(2000);
+          }
+
+          const movie: Movie = {
+            name,
+            coverImageUrl: movieInfo.coverImageUrl,
+            description,
+            duration: duration.replace(/[^0-9h min]/g, "").trim(),
+            genre: movieInfo.genre,
+            trailerLink,
+          };
+
+          newMovies.push(movie);
+        } catch (error) {
+          console.error(`Erro ao processar o filme ${name}:`, error);
+          continue;
+        }
       }
-
-      movies.push(movie);
     }
 
-    return movies;
+    const removedMovies = previousMovies.filter(
+      (movie) => !currentMovieNames.has(movie.name)
+    );
+
+    if (removedMovies.length > 0) {
+      console.log(
+        "Filmes que saíram de cartaz:",
+        removedMovies.map((m) => m.name)
+      );
+    }
+
+    return { newMovies, removedMovies };
   } catch (error) {
-    console.error("Error scraping Balneário:", error);
+    console.error("Erro ao fazer scraping do Balneário:", error);
     throw error;
   } finally {
     await browser.close();
   }
 }
-
-scrapeBalneario();
