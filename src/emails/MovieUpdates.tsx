@@ -20,6 +20,11 @@ interface MovieUpdatesProps {
   catalogUrl: string;
 }
 
+function truncateDescription(text: string, maxLength: number = 300): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + "...";
+}
+
 export default function MovieUpdates({
   theaterName,
   newMovies,
@@ -51,7 +56,9 @@ export default function MovieUpdates({
                     </td>
                     <td style={contentTd}>
                       <Text style={movieTitle}>{movie.name}</Text>
-                      <Text style={movieDescription}>{movie.description}</Text>
+                      <Text style={movieDescription}>
+                        {truncateDescription(movie.description)}
+                      </Text>
                       <Text style={movieMetadata}>
                         <span>{movie.genre}</span>
                         <span style={{ margin: "0 8px" }}>•</span>

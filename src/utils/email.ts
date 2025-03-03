@@ -31,7 +31,7 @@ export async function sendMovieUpdatesEmail({
     );
 
     const { data, error } = await resend.emails.send({
-      from: "Theatre Updates <updates@brunoaseff.com.br>",
+      from: "Atualizações do cinema <updates@brunoaseff.com.br>",
       to,
       subject: `Novos Filmes em Cartaz - ${theaterName}`,
       html: await html,
