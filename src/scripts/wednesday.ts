@@ -1,6 +1,10 @@
 import { getGistData, updateGistData } from "../utils/gist";
 import { scrapeBalneario } from "../scrapers/balneario";
+import { sendMovieUpdatesEmail } from "../utils/email";
 import { GistContent } from "../types";
+
+const BALNEARIO_URL = "https://www.balneariocamboriushopping.com.br/cinema";
+const EMAIL_RECIPIENTS = ["brunoaseff2@gmail.com"];
 
 async function wednesday() {
   try {
@@ -29,6 +33,21 @@ async function wednesday() {
     };
 
     await updateGistData(updatedGistData);
+    console.log("Gist atualizado com sucesso!");
+
+    if (newMovies.length > 0 || removedMovies.length > 0) {
+      await sendMovieUpdatesEmail({
+        theaterName: "Balneário Shopping",
+        newMovies,
+        removedMovies,
+        catalogUrl: BALNEARIO_URL,
+        to: EMAIL_RECIPIENTS,
+      });
+      console.log("Email enviado com sucesso!");
+    } else {
+      console.log("Nenhuma atualização para enviar por email.");
+    }
+
     console.log("Atualização concluída com sucesso!");
   } catch (error) {
     console.error("Erro durante a execução do script:", error);

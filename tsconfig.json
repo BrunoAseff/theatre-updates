@@ -8,6 +8,8 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "resolveJsonModule": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "esnext"]
   }
 }

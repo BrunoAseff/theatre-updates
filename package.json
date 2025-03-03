@@ -18,8 +18,10 @@
   "dependencies": {
     "@octokit/rest": "18.12.0",
     "@react-email/components": "^0.0.33",
+    "@react-email/render": "1.0.5",
     "@react-email/tailwind": "^1.0.4",
     "@types/node": "^22.13.8",
+    "@types/react": "^19.0.10",
     "dotenv": "^16.4.7",
     "puppeteer": "^24.3.0",
     "react-email": "^3.0.7",
