@@ -18,14 +18,6 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
     const page = (await browser.pages())[0];
     await page.setViewport({ width: 1920, height: 1080 });
 
-    let trailerLink = "";
-    page.on("request", (request) => {
-      const url = request.url();
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        trailerLink = url;
-      }
-    });
-
     await page.goto("https://www.balneariocamboriushopping.com.br/cinema", {
       waitUntil: "networkidle2",
       timeout: 60000,
@@ -47,7 +39,7 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
 
     for (const name of movieNames) {
       currentMovieNames.add(name);
-      trailerLink = "";
+      let trailerLink = "";
 
       if (!previousMovieNames.has(name)) {
         console.log(`Encontrado novo filme: ${name}`);
@@ -153,12 +145,32 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
               description = detailedInfo.description;
               duration = detailedInfo.duration;
 
+              // Configurar listener para nova aba antes de clicar no botão do trailer
+              const popupPromise = new Promise<string>(async (resolve) => {
+                browser.once("targetcreated", async (target) => {
+                  const newPage = await target.page();
+                  if (newPage) {
+                    const url = newPage.url();
+                    await newPage.close();
+                    resolve(url);
+                  } else {
+                    resolve("");
+                  }
+                });
+
+                // Definir um timeout para o caso de não abrir nova aba
+                setTimeout(() => resolve(""), 5000);
+              });
+
               await page.evaluate(() => {
                 const trailerButton = document.querySelector(
                   "#ver-trailer"
                 ) as HTMLElement;
                 if (trailerButton) trailerButton.click();
               });
+
+              trailerLink = await popupPromise;
+              console.log(`Link do trailer para ${name}:`, trailerLink);
 
               await sleep(2000);
             } catch (error) {

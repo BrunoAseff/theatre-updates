@@ -28,7 +28,6 @@ async function wednesday() {
       },
     };
 
-    // Salvar alterações no Gist
     await updateGistData(updatedGistData);
     console.log("Atualização concluída com sucesso!");
   } catch (error) {
