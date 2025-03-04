@@ -39,6 +39,9 @@ importers:
         specifier: ^4.1.2
         version: 4.1.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
     devDependencies:
+      '@react-email/preview':
+        specifier: ^0.0.12
+        version: 0.0.12(react@19.0.0)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@22.13.8)(typescript@5.8.2)

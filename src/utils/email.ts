@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { Movie } from "../types";
 import { render } from "@react-email/render";
-import MovieUpdates from "../emails/MovieUpdates";
+import MovieUpdates from "../../emails/MovieUpdates";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

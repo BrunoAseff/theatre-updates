@@ -145,7 +145,6 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
               description = detailedInfo.description;
               duration = detailedInfo.duration;
 
-              // Configurar listener para nova aba antes de clicar no botão do trailer
               const popupPromise = new Promise<string>(async (resolve) => {
                 browser.once("targetcreated", async (target) => {
                   const newPage = await target.page();
@@ -158,7 +157,6 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
                   }
                 });
 
-                // Definir um timeout para o caso de não abrir nova aba
                 setTimeout(() => resolve(""), 5000);
               });
 
