@@ -44,78 +44,42 @@ export default function MovieUpdates({
 
             {newMovies.map((movie) => (
               <Section key={movie.name} className="mb-8">
-                <div className="w-full">
-                  {/* Layout Mobile: Imagem à esquerda, info à direita, descrição embaixo */}
-                  <div className="flex flex-col md:hidden">
-                    <div className="flex gap-4 mb-4">
-                      <div className="w-[120px] flex-shrink-0">
+                <table className="w-full">
+                  <tbody>
+                    <tr>
+                      <td className="w-[180px] align-top pr-6">
                         <Img
                           src={movie.coverImageUrl}
                           alt={`Poster do filme ${movie.name}`}
-                          width={120}
-                          height={178}
+                          width={180}
+                          height={267}
                           className="rounded-lg object-cover w-full"
                         />
-                      </div>
-                      <div className="flex flex-col justify-between">
-                        <div>
-                          <Text className="text-lg font-bold text-gray-800 mb-2">
-                            {movie.name}
-                          </Text>
-                          <Text className="text-sm text-gray-500 mb-2">
-                            <span>{movie.genre}</span>
-                            <span className="mx-2">•</span>
-                            <span>{movie.duration}</span>
-                          </Text>
-                        </div>
+                      </td>
+                      <td className="align-top">
+                        <Text className="text-xl font-bold text-gray-800 mb-3">
+                          {movie.name}
+                        </Text>
+                        <Text className="text-gray-600 mb-4 leading-relaxed">
+                          {truncateDescription(movie.description)}
+                        </Text>
+                        <Text className="text-sm text-gray-500 mb-4 flex items-center">
+                          <span>{movie.genre}</span>
+                          <span className="mx-2">•</span>
+                          <span>{movie.duration}</span>
+                        </Text>
                         {movie.trailerLink && (
                           <Button
                             href={movie.trailerLink}
-                            className="bg-[#C20E4D] text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-[#A00B3F] transition-colors w-fit"
+                            className="bg-[#C20E4D] text-white px-6 py-3 rounded-lg font-semibold text-base hover:bg-[#A00B3F] transition-colors"
                           >
                             Ver Trailer
                           </Button>
                         )}
-                      </div>
-                    </div>
-                    <Text className="text-gray-600 text-sm leading-relaxed">
-                      {truncateDescription(movie.description)}
-                    </Text>
-                  </div>
-
-                  <div className="hidden md:flex gap-6">
-                    <div className="w-[180px] flex-shrink-0">
-                      <Img
-                        src={movie.coverImageUrl}
-                        alt={`Poster do filme ${movie.name}`}
-                        width={180}
-                        height={267}
-                        className="rounded-lg object-cover w-full"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Text className="text-xl font-bold text-gray-800 mb-3">
-                        {movie.name}
-                      </Text>
-                      <Text className="text-gray-600 mb-4 leading-relaxed">
-                        {truncateDescription(movie.description)}
-                      </Text>
-                      <Text className="text-sm text-gray-500 mb-4">
-                        <span>{movie.genre}</span>
-                        <span className="mx-2">•</span>
-                        <span>{movie.duration}</span>
-                      </Text>
-                      {movie.trailerLink && (
-                        <Button
-                          href={movie.trailerLink}
-                          className="bg-[#C20E4D] text-white px-6 py-3 rounded-lg font-semibold text-base hover:bg-[#A00B3F] transition-colors"
-                        >
-                          Ver Trailer
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </Section>
             ))}
 
