@@ -4,7 +4,11 @@ import { sendMovieUpdatesEmail } from "../utils/email";
 import { GistContent } from "../types";
 
 const ITAJAI_URL = "https://itajaishopping.com.br/cinema/";
-const EMAIL_RECIPIENTS = ["brunoaseff2@gmail.com"];
+const EMAIL_RECIPIENTS = [
+  "brunoaseff2@gmail.com",
+  "Maiteduartealves@gmail.com",
+  "alseff@hotmail.com",
+];
 
 async function thursday() {
   try {
