@@ -9,9 +9,15 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
   removedMovies: Movie[];
 }> {
   const browser = await puppeteer.launch({
-    headless: false,
-    defaultViewport: null,
-    args: ["--start-maximized"],
+    headless: true,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--disable-gpu",
+      "--window-size=1920,1080",
+    ],
   });
 
   try {
