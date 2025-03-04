@@ -4,8 +4,11 @@ import { sendMovieUpdatesEmail } from "../utils/email";
 import { GistContent, Movie } from "../types";
 
 const ITAJAI_URL = "https://itajaishopping.com.br/cinema/";
-const EMAIL_RECIPIENTS = ["brunoaseff2@gmail.com"];
-
+const EMAIL_RECIPIENTS = [
+  "brunoaseff2@gmail.com",
+  "Maiteduartealves@gmail.com",
+  "alseff@hotmail.com",
+];
 async function thursday() {
   try {
     console.log("Iniciando atualização de quinta-feira...");
@@ -39,7 +42,6 @@ async function thursday() {
     await updateGistData(updatedGistData);
     console.log("Gist atualizado com sucesso!");
 
-    // Sempre envia o email com todos os filmes
     await sendMovieUpdatesEmail({
       theaterName: "Shopping Itajaí",
       movies: currentMovies,

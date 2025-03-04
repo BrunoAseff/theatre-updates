@@ -35,16 +35,16 @@ export default function MovieUpdates({
       <Tailwind>
         <Body className="bg-white font-sans">
           <Container className="mx-auto py-10 px-4">
-            <Heading className="text-2xl font-bold text-gray-800 text-center mb-10">
+            <Heading className="text-2xl font-bold text-[#09090b] text-center mb-10">
               Filmes em Cartaz - {theaterName}
             </Heading>
 
             {movies.map((movie) => (
-              <Section key={movie.name} className="mb-8">
-                <table className="w-full">
-                  <tbody>
-                    <tr>
-                      <td className="w-[180px] align-top pr-6">
+              <Section key={movie.name} className="mb-8 ">
+                <table className="w-full ">
+                  <tbody className="w-full">
+                    <tr className="">
+                      <td className="w-[150px] align-top pr-6">
                         <Img
                           src={movie.coverImageUrl}
                           alt={`Poster do filme ${movie.name}`}
@@ -54,20 +54,39 @@ export default function MovieUpdates({
                         />
                       </td>
                       <td className="align-top">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Text className="text-xl font-bold text-gray-800">
-                            {movie.name}
-                          </Text>
+                        <table
+                          cellPadding="0"
+                          cellSpacing="0"
+                          style={{ marginBottom: "8px" }}
+                        >
+                          <tr>
+                            <td
+                              style={{
+                                fontSize: "1.25rem",
+                                fontWeight: "bold",
+                                color: "#09090b",
+                                padding: 0,
+                                paddingBottom: "4px",
+                                lineHeight: "1.5",
+                              }}
+                            >
+                              {movie.name}
+                            </td>
+                          </tr>
                           {movie.isNew && (
-                            <Text className="text-xs bg-[#C20E4D] text-white px-2 py-0.5 rounded">
-                              Novidade
-                            </Text>
+                            <tr>
+                              <td style={{ padding: 0 }}>
+                                <div className="text-xs bg-[#17C964] w-fit text-white px-2 m-0 py-0.5 rounded">
+                                  Novidade
+                                </div>
+                              </td>
+                            </tr>
                           )}
-                        </div>
-                        <Text className="text-gray-600 mb-4 leading-relaxed">
+                        </table>
+                        <Text className="text-[#52525b] mb-4 leading-relaxed">
                           {truncateDescription(movie.description)}
                         </Text>
-                        <Text className="text-sm text-gray-500 mb-4 flex items-center">
+                        <Text className="text-sm text-[#52525b] mb-4 flex items-center">
                           <span>{movie.genre}</span>
                           <span className="mx-2">•</span>
                           <span>{movie.duration}</span>
@@ -75,7 +94,7 @@ export default function MovieUpdates({
                         {movie.trailerLink && (
                           <Button
                             href={movie.trailerLink}
-                            className="bg-[#C20E4D] text-white px-6 py-3 rounded-lg font-semibold text-base hover:bg-[#A00B3F] transition-colors"
+                            className="bg-[#4338ca] text-white px-6 py-3 rounded-lg font-semibold text-base  transition-colors"
                           >
                             Ver Trailer
                           </Button>
@@ -90,7 +109,7 @@ export default function MovieUpdates({
             <Section className="text-center mt-10">
               <Link
                 href={catalogUrl}
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-sm text-[#4338ca] hover:underline transition-colors"
               >
                 Ver catálogo completo de filmes
               </Link>

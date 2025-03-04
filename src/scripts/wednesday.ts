@@ -9,7 +9,6 @@ const EMAIL_RECIPIENTS = [
   "Maiteduartealves@gmail.com",
   "alseff@hotmail.com",
 ];
-
 async function wednesday() {
   try {
     console.log("Iniciando atualização de quarta-feira...");
@@ -22,7 +21,6 @@ async function wednesday() {
       `Encontrados ${newMovies.length} novos filmes e ${removedMovies.length} filmes removidos`
     );
 
-    // Marca os filmes novos
     const currentMovies: Movie[] = [
       ...gistData.balneario.movies
         .filter(
@@ -44,7 +42,6 @@ async function wednesday() {
     await updateGistData(updatedGistData);
     console.log("Gist atualizado com sucesso!");
 
-    // Sempre envia o email com todos os filmes
     await sendMovieUpdatesEmail({
       theaterName: "Balneário Shopping",
       movies: currentMovies,
