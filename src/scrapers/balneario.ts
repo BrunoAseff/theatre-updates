@@ -1,33 +1,142 @@
-import puppeteer from "puppeteer";
+import puppeteer, { Page, Browser } from "puppeteer";
 import { Movie, GistContent } from "../types";
-import { autoScroll } from "../utils/utils";
+import {
+  autoScroll,
+  log,
+  sleep,
+  PUPPETEER_CONFIG,
+  setupPage,
+} from "../utils/utils";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const BALNEARIO_URL = "https://www.balneariocamboriushopping.com.br/cinema";
+
+async function getMovieDetails(page: Page, name: string) {
+  await page.evaluate((movieName: string) => {
+    const movieElements = Array.from(
+      document.querySelectorAll("app-single-movie h3")
+    );
+    const targetElement = movieElements
+      .find((el) => el.textContent?.trim() === movieName)
+      ?.closest("app-single-movie");
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, name);
+
+  await sleep(2000);
+
+  const movieInfo = await page.evaluate((movieName: string) => {
+    const movieElements = Array.from(
+      document.querySelectorAll("app-single-movie")
+    );
+    const movieElement = movieElements.find(
+      (el) => el.querySelector("h3")?.textContent?.trim() === movieName
+    );
+
+    if (!movieElement) return null;
+
+    const coverImageUrl =
+      movieElement
+        .querySelector(".movie-poster-area img")
+        ?.getAttribute("src") || "";
+    const genre =
+      movieElement
+        .querySelector("ul.movie-time li:first-child")
+        ?.textContent?.trim() || "";
+    const duration =
+      movieElement
+        .querySelector("ul.movie-time li:nth-child(2)")
+        ?.textContent?.trim() || "";
+    const description =
+      movieElement.querySelector("p")?.textContent?.trim() || "";
+    const readMoreButton = movieElement.querySelector(
+      ".read-more"
+    ) as HTMLElement;
+    const hasDetails =
+      readMoreButton && !readMoreButton.getAttribute("href")?.includes("#");
+
+    return { coverImageUrl, genre, duration, description, hasDetails };
+  }, name);
+
+  return movieInfo;
+}
+
+async function getExtendedDetails(page: Page, browser: Browser, name: string) {
+  await page.evaluate((movieName: string) => {
+    const movieElements = Array.from(
+      document.querySelectorAll("app-single-movie")
+    );
+    const movieElement = movieElements.find(
+      (el) => el.querySelector("h3")?.textContent?.trim() === movieName
+    );
+    const readMoreButton = movieElement?.querySelector(
+      ".read-more"
+    ) as HTMLElement;
+    if (readMoreButton) readMoreButton.click();
+  }, name);
+
+  await sleep(3000);
+
+  try {
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector(".sinopse");
+        return el?.textContent?.length ?? 0 > 0;
+      },
+      { timeout: 5000 }
+    );
+
+    const detailedInfo = await page.evaluate(() => ({
+      description:
+        document.querySelector(".sinopse")?.textContent?.trim() || "",
+      duration:
+        document
+          .querySelector(".duration")
+          ?.textContent?.replace("Duração:", "")
+          .trim() || "",
+    }));
+
+    const trailerLink = await getTrailerLink(page, browser);
+
+    return { ...detailedInfo, trailerLink };
+  } catch (error) {
+    log(`Não foi possível carregar detalhes extras para ${name}`, "error");
+    return null;
+  }
+}
+
+async function getTrailerLink(page: Page, browser: Browser): Promise<string> {
+  const popupPromise = new Promise<string>(async (resolve) => {
+    browser.once("targetcreated", async (target) => {
+      const newPage = await target.page();
+      if (newPage) {
+        const url = newPage.url();
+        await newPage.close();
+        resolve(url);
+      } else {
+        resolve("");
+      }
+    });
+
+    setTimeout(() => resolve(""), 5000);
+  });
+
+  await page.evaluate(() => {
+    const trailerButton = document.querySelector("#ver-trailer") as HTMLElement;
+    if (trailerButton) trailerButton.click();
+  });
+
+  return popupPromise;
+}
 
 export async function scrapeBalneario(gistData: GistContent): Promise<{
   newMovies: Movie[];
   removedMovies: Movie[];
 }> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--disable-gpu",
-      "--window-size=1920,1080",
-    ],
-  });
+  const browser = await puppeteer.launch(PUPPETEER_CONFIG);
 
   try {
-    const page = (await browser.pages())[0];
-    await page.setViewport({ width: 1920, height: 1080 });
-
-    await page.goto("https://www.balneariocamboriushopping.com.br/cinema", {
-      waitUntil: "networkidle2",
-      timeout: 60000,
-    });
+    const page = await setupPage(browser, BALNEARIO_URL);
 
     const previousMovies = gistData.balneario.movies;
     const previousMovieNames = new Set(
@@ -39,148 +148,43 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
     await autoScroll(page);
     await sleep(2000);
 
+    log("Buscando filmes em cartaz...");
     const movieNames = await page.$$eval("app-single-movie h3", (elements) =>
       elements.map((el) => el.textContent?.trim() || "")
     );
 
+    log(`Encontrados ${movieNames.length} filmes no total.`);
+
     for (const name of movieNames) {
       currentMovieNames.add(name);
-      let trailerLink = "";
 
       if (!previousMovieNames.has(name)) {
-        console.log(`Encontrado novo filme: ${name}`);
+        log(`Processando novo filme: ${name}`);
 
         try {
-          await page.evaluate((movieName) => {
-            const movieElements = Array.from(
-              document.querySelectorAll("app-single-movie h3")
-            );
-            const targetElement = movieElements
-              .find((el) => el.textContent?.trim() === movieName)
-              ?.closest("app-single-movie");
-            if (targetElement) {
-              targetElement.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              });
-            }
-          }, name);
-
-          await sleep(2000);
-
-          const movieInfo = await page.evaluate((movieName) => {
-            const movieElements = Array.from(
-              document.querySelectorAll("app-single-movie")
-            );
-            const movieElement = movieElements.find(
-              (el) => el.querySelector("h3")?.textContent?.trim() === movieName
-            );
-
-            if (!movieElement) return null;
-
-            const coverImageUrl =
-              movieElement
-                .querySelector(".movie-poster-area img")
-                ?.getAttribute("src") || "";
-            const genre =
-              movieElement
-                .querySelector("ul.movie-time li:first-child")
-                ?.textContent?.trim() || "";
-            const duration =
-              movieElement
-                .querySelector("ul.movie-time li:nth-child(2)")
-                ?.textContent?.trim() || "";
-            const description =
-              movieElement.querySelector("p")?.textContent?.trim() || "";
-
-            const readMoreButton = movieElement.querySelector(
-              ".read-more"
-            ) as HTMLElement;
-            const hasDetails =
-              readMoreButton &&
-              !readMoreButton.getAttribute("href")?.includes("#");
-
-            return { coverImageUrl, genre, duration, description, hasDetails };
-          }, name);
+          const movieInfo = await getMovieDetails(page, name);
 
           if (!movieInfo) {
-            console.log(`Não foi possível encontrar informações para ${name}`);
+            log(`Não foi possível encontrar informações para ${name}`, "error");
             continue;
           }
 
           let description = movieInfo.description;
           let duration = movieInfo.duration;
+          let trailerLink = "";
 
           if (movieInfo.hasDetails) {
-            await page.evaluate((movieName) => {
-              const movieElements = Array.from(
-                document.querySelectorAll("app-single-movie")
-              );
-              const movieElement = movieElements.find(
-                (el) =>
-                  el.querySelector("h3")?.textContent?.trim() === movieName
-              );
-              const readMoreButton = movieElement?.querySelector(
-                ".read-more"
-              ) as HTMLElement;
-              if (readMoreButton) readMoreButton.click();
-            }, name);
+            log(`Buscando detalhes adicionais para ${name}...`);
+            const extendedInfo = await getExtendedDetails(page, browser, name);
 
-            await sleep(3000);
+            if (extendedInfo) {
+              description = extendedInfo.description;
+              duration = extendedInfo.duration;
+              trailerLink = extendedInfo.trailerLink;
 
-            try {
-              await page.waitForFunction(
-                () => {
-                  const el = document.querySelector(".sinopse");
-                  return el?.textContent?.length ?? 0 > 0;
-                },
-                { timeout: 5000 }
-              );
-
-              const detailedInfo = await page.evaluate(() => {
-                const description =
-                  document.querySelector(".sinopse")?.textContent?.trim() || "";
-                const duration =
-                  document
-                    .querySelector(".duration")
-                    ?.textContent?.replace("Duração:", "")
-                    .trim() || "";
-                return { description, duration };
-              });
-
-              description = detailedInfo.description;
-              duration = detailedInfo.duration;
-
-              const popupPromise = new Promise<string>(async (resolve) => {
-                browser.once("targetcreated", async (target) => {
-                  const newPage = await target.page();
-                  if (newPage) {
-                    const url = newPage.url();
-                    await newPage.close();
-                    resolve(url);
-                  } else {
-                    resolve("");
-                  }
-                });
-
-                setTimeout(() => resolve(""), 5000);
-              });
-
-              await page.evaluate(() => {
-                const trailerButton = document.querySelector(
-                  "#ver-trailer"
-                ) as HTMLElement;
-                if (trailerButton) trailerButton.click();
-              });
-
-              trailerLink = await popupPromise;
-              console.log(`Link do trailer para ${name}:`, trailerLink);
-
-              await sleep(2000);
-            } catch (error) {
-              console.log(
-                `Não foi possível carregar detalhes extras para ${name}`
-              );
+              if (trailerLink) {
+                log(`Trailer encontrado para ${name}`, "success");
+              }
             }
 
             await page.goBack();
@@ -199,8 +203,9 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
           };
 
           newMovies.push(movie);
+          log(`Filme ${name} processado com sucesso`, "success");
         } catch (error) {
-          console.error(`Erro ao processar o filme ${name}:`, error);
+          log(`Erro ao processar o filme ${name}: ${error}`, "error");
           continue;
         }
       }
@@ -211,15 +216,21 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
     );
 
     if (removedMovies.length > 0) {
-      console.log(
-        "Filmes que saíram de cartaz:",
-        removedMovies.map((m) => m.name)
+      log(
+        `Filmes que saíram de cartaz: ${removedMovies
+          .map((m) => m.name)
+          .join(", ")}`,
+        "info"
       );
     }
 
+    log(
+      `Scraping concluído. ${newMovies.length} novos filmes encontrados.`,
+      "success"
+    );
     return { newMovies, removedMovies };
   } catch (error) {
-    console.error("Erro ao fazer scraping do Balneário:", error);
+    log(`Erro ao fazer scraping do Balneário: ${error}`, "error");
     throw error;
   } finally {
     await browser.close();
