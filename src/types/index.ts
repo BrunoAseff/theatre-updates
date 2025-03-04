@@ -5,6 +5,7 @@ export interface Movie {
   duration: string;
   trailerLink: string;
   genre: string;
+  isNew?: boolean;
 }
 
 export interface TheaterData {

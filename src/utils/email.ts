@@ -7,16 +7,14 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface SendMovieUpdatesEmailParams {
   theaterName: string;
-  newMovies: Movie[];
-  removedMovies: Movie[];
+  movies: Movie[];
   catalogUrl: string;
   to: string[];
 }
 
 export async function sendMovieUpdatesEmail({
   theaterName,
-  newMovies,
-  removedMovies,
+  movies,
   catalogUrl,
   to,
 }: SendMovieUpdatesEmailParams) {
@@ -24,8 +22,7 @@ export async function sendMovieUpdatesEmail({
     const html = render(
       MovieUpdates({
         theaterName,
-        newMovies,
-        removedMovies,
+        movies,
         catalogUrl,
       })
     );
@@ -33,7 +30,7 @@ export async function sendMovieUpdatesEmail({
     const { data, error } = await resend.emails.send({
       from: "Atualizações do cinema <updates@brunoaseff.com.br>",
       to,
-      subject: `Novos Filmes em Cartaz - ${theaterName}`,
+      subject: `Filmes em Cartaz - ${theaterName}`,
       html: await html,
     });
 

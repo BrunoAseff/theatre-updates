@@ -8,7 +8,6 @@ import {
   Img,
   Text,
   Button,
-  Hr,
   Link,
 } from "@react-email/components";
 import { Movie } from "../src/types";
@@ -16,8 +15,7 @@ import { Tailwind } from "@react-email/tailwind";
 
 interface MovieUpdatesProps {
   theaterName: string;
-  newMovies: Movie[];
-  removedMovies: Movie[];
+  movies: Movie[];
   catalogUrl: string;
 }
 
@@ -28,8 +26,7 @@ function truncateDescription(text: string, maxLength: number = 300): string {
 
 export default function MovieUpdates({
   theaterName,
-  newMovies,
-  removedMovies,
+  movies,
   catalogUrl,
 }: MovieUpdatesProps) {
   return (
@@ -39,10 +36,10 @@ export default function MovieUpdates({
         <Body className="bg-white font-sans">
           <Container className="mx-auto py-10 px-4">
             <Heading className="text-2xl font-bold text-gray-800 text-center mb-10">
-              Novos Filmes em Cartaz - {theaterName}
+              Filmes em Cartaz - {theaterName}
             </Heading>
 
-            {newMovies.map((movie) => (
+            {movies.map((movie) => (
               <Section key={movie.name} className="mb-8">
                 <table className="w-full">
                   <tbody>
@@ -57,9 +54,16 @@ export default function MovieUpdates({
                         />
                       </td>
                       <td className="align-top">
-                        <Text className="text-xl font-bold text-gray-800 mb-3">
-                          {movie.name}
-                        </Text>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Text className="text-xl font-bold text-gray-800">
+                            {movie.name}
+                          </Text>
+                          {movie.isNew && (
+                            <Text className="text-xs bg-[#C20E4D] text-white px-2 py-0.5 rounded">
+                              Novidade
+                            </Text>
+                          )}
+                        </div>
                         <Text className="text-gray-600 mb-4 leading-relaxed">
                           {truncateDescription(movie.description)}
                         </Text>
@@ -82,19 +86,6 @@ export default function MovieUpdates({
                 </table>
               </Section>
             ))}
-
-            <Hr className="border-gray-200 my-10" />
-
-            {removedMovies.length > 0 && (
-              <Section className="mb-8">
-                <Text className="text-base font-semibold text-gray-600 mb-2">
-                  Filmes que saíram de cartaz:
-                </Text>
-                <Text className="text-sm text-gray-500 leading-relaxed">
-                  {removedMovies.map((movie) => movie.name).join(", ")}
-                </Text>
-              </Section>
-            )}
 
             <Section className="text-center mt-10">
               <Link
