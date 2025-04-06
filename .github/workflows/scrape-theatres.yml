@@ -39,7 +39,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # Instala as dependências do Chrome
       - name: Install Chrome dependencies
         run: |
           sudo apt-get update
@@ -49,6 +48,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '0 13 * * 3')
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: pnpm run wednesday
@@ -57,6 +57,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && github.event.schedule == '0 13 * * 4')
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_RECIPIENTS: ${{ secrets.EMAIL_RECIPIENTS }}
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: pnpm run thursday

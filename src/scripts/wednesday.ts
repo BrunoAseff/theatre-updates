@@ -4,11 +4,8 @@ import { sendMovieUpdatesEmail } from "../utils/email";
 import { GistContent, Movie } from "../types";
 
 const BALNEARIO_URL = "https://www.balneariocamboriushopping.com.br/cinema";
-const EMAIL_RECIPIENTS = [
-  "brunoaseff2@gmail.com",
-  "Maiteduartealves@gmail.com",
-  "alseff@hotmail.com",
-];
+const EMAIL_RECIPIENTS = process.env.EMAIL_RECIPIENTS?.split(",") || [];
+
 async function wednesday() {
   try {
     console.log("Iniciando atualização de quarta-feira...");
