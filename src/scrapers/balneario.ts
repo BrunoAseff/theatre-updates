@@ -188,9 +188,7 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
             }
 
             await page.goBack();
-            await sleep(3000);
-            await page.waitForSelector("app-single-movie", { timeout: 5000 });
-            await sleep(2000);
+            await sleep(6000);
           }
 
           const movie: Movie = {
@@ -204,6 +202,7 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
 
           newMovies.push(movie);
           log(`Filme ${name} processado com sucesso`, "success");
+          await page.goBack();
         } catch (error) {
           log(`Erro ao processar o filme ${name}: ${error}`, "error");
           continue;
