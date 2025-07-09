@@ -109,7 +109,7 @@ export default function MovieUpdates({
             <Section className="text-center mt-10">
               <Link
                 href={catalogUrl}
-                className="text-sm text-[#4338ca] hover:underline transition-colors"
+                className="text-sm text-[#4338ca] transition-colors"
               >
                 Ver catálogo completo de filmes
               </Link>
