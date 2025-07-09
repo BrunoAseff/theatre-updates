@@ -31,8 +31,8 @@ export default function MovieUpdates({
 }: MovieUpdatesProps) {
   return (
     <Html>
-      <Head />
       <Tailwind>
+        <Head/>
         <Body className="bg-white font-sans">
           <Container className="mx-auto py-10 px-4">
             <Heading className="text-2xl font-bold text-[#09090b] text-center mb-10">
@@ -94,7 +94,7 @@ export default function MovieUpdates({
                         {movie.trailerLink && (
                           <Button
                             href={movie.trailerLink}
-                            className="bg-[#4338ca] text-white px-6 py-3 rounded-lg font-semibold text-base  transition-colors"
+                            className="bg-[#4338ca] text-white px-6 py-3 rounded-lg font-semibold text-base transition-colors"
                           >
                             Ver Trailer
                           </Button>
@@ -109,7 +109,7 @@ export default function MovieUpdates({
             <Section className="text-center mt-10">
               <Link
                 href={catalogUrl}
-                className="text-sm text-[#4338ca] transition-colors"
+                className="text-sm text-[#4338ca]"
               >
                 Ver catálogo completo de filmes
               </Link>
