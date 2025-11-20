@@ -1,15 +1,4 @@
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Section,
-  Img,
-  Text,
-  Button,
-  Link,
-} from "@react-email/components";
+import { Body, Container, Head, Heading, Html, Section, Img, Text, Button, Link } from "@react-email/components";
 import { Movie } from "../src/types";
 import { Tailwind } from "@react-email/tailwind";
 
@@ -24,95 +13,138 @@ function truncateDescription(text: string, maxLength: number = 300): string {
   return text.slice(0, maxLength).trim() + "...";
 }
 
-export default function MovieUpdates({
-  theaterName,
-  movies,
-  catalogUrl,
-}: MovieUpdatesProps) {
+export default function MovieUpdates({ theaterName, movies, catalogUrl }: MovieUpdatesProps) {
   return (
     <Html>
       <Tailwind>
-        <Head/>
-        <Body className="bg-white font-sans">
-          <Container className="mx-auto py-10 px-4">
-            <Heading className="text-2xl font-bold text-[#09090b] text-center mb-10">
-              Filmes em Cartaz - {theaterName}
+        <Head />
+        <Body className="bg-[#171311] font-sans">
+          <Container style={{ maxWidth: "600px" }}>
+            <Heading className="text-white text-center mb-12 bg-[#AE1D29] py-6">
+              <Text className="text-3xl font-bold mb-1"> Filmes em Cartaz </Text>
+              <Text className="text-sm font-light ">{theaterName}</Text>
             </Heading>
 
             {movies.map((movie) => (
-              <Section key={movie.name} className="mb-8 ">
-                <table className="w-full ">
-                  <tbody className="w-full">
-                    <tr className="">
-                      <td className="w-[150px] align-top pr-6">
-                        <Img
-                          src={movie.coverImageUrl}
-                          alt={`Poster do filme ${movie.name}`}
-                          width={180}
-                          height={267}
-                          className="rounded-lg object-cover w-full"
-                        />
-                      </td>
-                      <td className="align-top">
-                        <table
-                          cellPadding="0"
-                          cellSpacing="0"
-                          style={{ marginBottom: "8px" }}
+              <Section key={movie.name} style={{ marginBottom: "32px" }}>
+                <div
+                  style={{
+                    border: "1px #3E3632 solid",
+                    borderRadius: "16px",
+                    paddingBottom: "16px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Img
+                    src={movie.coverImageUrl}
+                    alt={`Poster do filme ${movie.name}`}
+                    width="100%"
+                    height="300"
+                    style={{
+                      borderRadius: "16px 16px 0 0",
+                      marginBottom: "12px",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                  <div className="px-6 py-2">
+                    <Text
+                      style={{
+                        fontSize: "1.125rem",
+                        fontWeight: "bold",
+                        color: "white",
+                        margin: 0,
+                        marginBottom: "8px",
+                        lineHeight: "1.4",
+                      }}
+                    >
+                      {movie.name}
+                    </Text>
+
+                    <div style={{ marginBottom: "8px" }}>
+                      {movie.isNew && (
+                        <span
+                          style={{
+                            fontSize: "0.85rem",
+                            backgroundColor: "#212A1F",
+                            color: "#1A9B46",
+                            padding: "2px 8px",
+                            borderRadius: "8px",
+                            marginRight: "4px",
+                          }}
                         >
-                          <tr>
-                            <td
-                              style={{
-                                fontSize: "1.25rem",
-                                fontWeight: "bold",
-                                color: "#09090b",
-                                padding: 0,
-                                paddingBottom: "4px",
-                                lineHeight: "1.5",
-                              }}
-                            >
-                              {movie.name}
-                            </td>
-                          </tr>
-                          {movie.isNew && (
-                            <tr>
-                              <td style={{ padding: 0 }}>
-                                <div className="text-xs bg-[#17C964] w-fit text-white px-2 m-0 py-0.5 rounded">
-                                  Novidade
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </table>
-                        <Text className="text-[#52525b] mb-4 leading-relaxed">
-                          {truncateDescription(movie.description)}
-                        </Text>
-                        <Text className="text-sm text-[#52525b] mb-4 flex items-center">
-                          <span>{movie.genre}</span>
-                          <span className="mx-2">•</span>
-                          <span>{movie.duration}</span>
-                        </Text>
-                        {movie.trailerLink && (
-                          <Button
-                            href={movie.trailerLink}
-                            className="bg-[#4338ca] text-white px-6 py-3 rounded-lg font-semibold text-base transition-colors"
-                          >
-                            Ver Trailer
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                          Novidade
+                        </span>
+                      )}
+                      <span
+                        style={{
+                          fontSize: "0.85rem",
+                          backgroundColor: "#331D1C",
+                          color: "#C51D27",
+                          padding: "2px 8px",
+                          borderRadius: "8px",
+                          margin: "0 6px 6px 0",
+                        }}
+                      >
+                        {movie.genre}
+                      </span>
+                      <div style={{ color: "#AAA7A1", fontSize: "0.75rem", marginTop: "12px" }}>{movie.duration}</div>
+                    </div>
+
+                    <Text
+                      style={{
+                        color: "#AAA7A1",
+                        marginBottom: "16px",
+                        lineHeight: "1.5",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      {truncateDescription(movie.description, 300)}{" "}
+                    </Text>
+
+                    {movie.trailerLink && (
+                      <Button
+                        href={movie.trailerLink}
+                        style={{
+                          backgroundColor: "#C91D2B",
+                          color: "white",
+                          padding: "10px 16px",
+                          width: "94%",
+                          textAlign: "center",
+                          borderRadius: "8px",
+                          fontWeight: "600",
+                          fontSize: "0.875rem",
+                          textDecoration: "none",
+                          display: "block",
+                        }}
+                      >
+                        Ver Trailer
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </Section>
             ))}
 
-            <Section className="text-center mt-10">
-              <Link
+            <Section className="text-center mt-10 mb-10">
+              <Button
                 href={catalogUrl}
-                className="text-sm text-[#4338ca]"
+                style={{
+                  backgroundColor: "#F5BE3D",
+                  color: "black",
+                  padding: "16px 22px",
+                  width: "fit-content",
+                  margin: "auto",
+                  textAlign: "center",
+                  borderRadius: "16px",
+                  fontWeight: "600",
+                  fontSize: "1rem",
+                  textDecoration: "none",
+                  display: "block",
+                }}
               >
                 Ver catálogo completo de filmes
-              </Link>
+              </Button>
             </Section>
           </Container>
         </Body>
