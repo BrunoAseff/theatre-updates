@@ -1,23 +1,13 @@
 import puppeteer, { Page, Browser } from "puppeteer";
 import { Movie, GistContent } from "../types";
-import {
-  autoScroll,
-  log,
-  sleep,
-  PUPPETEER_CONFIG,
-  setupPage,
-} from "../utils/utils";
+import { autoScroll, log, sleep, PUPPETEER_CONFIG, setupPage } from "../utils/utils";
 
 const BALNEARIO_URL = "https://www.balneariocamboriushopping.com.br/cinema";
 
 async function getMovieDetails(page: Page, name: string) {
   await page.evaluate((movieName: string) => {
-    const movieElements = Array.from(
-      document.querySelectorAll("app-single-movie h3")
-    );
-    const targetElement = movieElements
-      .find((el) => el.textContent?.trim() === movieName)
-      ?.closest("app-single-movie");
+    const movieElements = Array.from(document.querySelectorAll("app-single-movie h3"));
+    const targetElement = movieElements.find((el) => el.textContent?.trim() === movieName)?.closest("app-single-movie");
     if (targetElement) {
       targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
     }
@@ -26,34 +16,20 @@ async function getMovieDetails(page: Page, name: string) {
   await sleep(2000);
 
   const movieInfo = await page.evaluate((movieName: string) => {
-    const movieElements = Array.from(
-      document.querySelectorAll("app-single-movie")
-    );
-    const movieElement = movieElements.find(
-      (el) => el.querySelector("h3")?.textContent?.trim() === movieName
-    );
+    const movieElements = Array.from(document.querySelectorAll("app-single-movie"));
+    const movieElement = movieElements.find((el) => el.querySelector("h3")?.textContent?.trim() === movieName);
 
     if (!movieElement) return null;
 
-    const coverImageUrl =
-      movieElement
-        .querySelector(".movie-poster-area img")
-        ?.getAttribute("src") || "";
-    const genre =
-      movieElement
-        .querySelector("ul.movie-time li:first-child")
-        ?.textContent?.trim() || "";
-    const duration =
-      movieElement
-        .querySelector("ul.movie-time li:nth-child(2)")
-        ?.textContent?.trim() || "";
-    const description =
-      movieElement.querySelector("p")?.textContent?.trim() || "";
-    const readMoreButton = movieElement.querySelector(
-      ".read-more"
-    ) as HTMLElement;
-    const hasDetails =
-      readMoreButton && !readMoreButton.getAttribute("href")?.includes("#");
+    const coverImageUrl = movieElement.querySelector(".movie-poster-area img")?.getAttribute("src") || "";
+    const genre = movieElement.querySelector("ul.movie-time li:first-child")?.textContent?.trim() || "";
+
+    const duration = movieElement.querySelector("ul.movie-time li:nth-child(2)")?.textContent?.trim() || "";
+
+    const description = movieElement.querySelector("p")?.textContent?.trim() || "";
+    const readMoreButton = movieElement.querySelector(".read-more") as HTMLElement;
+
+    const hasDetails = readMoreButton && !readMoreButton.getAttribute("href")?.includes("#");
 
     return { coverImageUrl, genre, duration, description, hasDetails };
   }, name);
@@ -63,15 +39,12 @@ async function getMovieDetails(page: Page, name: string) {
 
 async function getExtendedDetails(page: Page, browser: Browser, name: string) {
   await page.evaluate((movieName: string) => {
-    const movieElements = Array.from(
-      document.querySelectorAll("app-single-movie")
-    );
-    const movieElement = movieElements.find(
-      (el) => el.querySelector("h3")?.textContent?.trim() === movieName
-    );
-    const readMoreButton = movieElement?.querySelector(
-      ".read-more"
-    ) as HTMLElement;
+    const movieElements = Array.from(document.querySelectorAll("app-single-movie"));
+
+    const movieElement = movieElements.find((el) => el.querySelector("h3")?.textContent?.trim() === movieName);
+
+    const readMoreButton = movieElement?.querySelector(".read-more") as HTMLElement;
+
     if (readMoreButton) readMoreButton.click();
   }, name);
 
@@ -83,17 +56,12 @@ async function getExtendedDetails(page: Page, browser: Browser, name: string) {
         const el = document.querySelector(".sinopse");
         return el?.textContent?.length ?? 0 > 0;
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     );
 
     const detailedInfo = await page.evaluate(() => ({
-      description:
-        document.querySelector(".sinopse")?.textContent?.trim() || "",
-      duration:
-        document
-          .querySelector(".duration")
-          ?.textContent?.replace("Duração:", "")
-          .trim() || "",
+      description: document.querySelector(".sinopse")?.textContent?.trim() || "",
+      duration: document.querySelector(".duration")?.textContent?.replace("Duração:", "").trim() || "",
     }));
 
     const trailerLink = await getTrailerLink(page, browser);
@@ -139,9 +107,7 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
     const page = await setupPage(browser, BALNEARIO_URL);
 
     const previousMovies = gistData.balneario.movies;
-    const previousMovieNames = new Set(
-      previousMovies.map((movie) => movie.name)
-    );
+    const previousMovieNames = new Set(previousMovies.map((movie) => movie.name));
     const currentMovieNames = new Set<string>();
     const newMovies: Movie[] = [];
 
@@ -150,7 +116,7 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
 
     log("Buscando filmes em cartaz...");
     const movieNames = await page.$$eval("app-single-movie h3", (elements) =>
-      elements.map((el) => el.textContent?.trim() || "")
+      elements.map((el) => el.textContent?.trim() || ""),
     );
 
     log(`Encontrados ${movieNames.length} filmes no total.`);
@@ -202,7 +168,6 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
 
           newMovies.push(movie);
           log(`Filme ${name} processado com sucesso`, "success");
-          await page.goBack();
         } catch (error) {
           log(`Erro ao processar o filme ${name}: ${error}`, "error");
           continue;
@@ -210,23 +175,13 @@ export async function scrapeBalneario(gistData: GistContent): Promise<{
       }
     }
 
-    const removedMovies = previousMovies.filter(
-      (movie) => !currentMovieNames.has(movie.name)
-    );
+    const removedMovies = previousMovies.filter((movie) => !currentMovieNames.has(movie.name));
 
     if (removedMovies.length > 0) {
-      log(
-        `Filmes que saíram de cartaz: ${removedMovies
-          .map((m) => m.name)
-          .join(", ")}`,
-        "info"
-      );
+      log(`Filmes que saíram de cartaz: ${removedMovies.map((m) => m.name).join(", ")}`, "info");
     }
 
-    log(
-      `Scraping concluído. ${newMovies.length} novos filmes encontrados.`,
-      "success"
-    );
+    log(`Scraping concluído. ${newMovies.length} novos filmes encontrados.`, "success");
     return { newMovies, removedMovies };
   } catch (error) {
     log(`Erro ao fazer scraping do Balneário: ${error}`, "error");
