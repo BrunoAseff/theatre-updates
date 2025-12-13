@@ -1,4 +1,14 @@
-import { Body, Container, Head, Heading, Html, Section, Img, Text, Button, Link } from "@react-email/components";
+import {
+  Body,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Section,
+  Img,
+  Text,
+  Button,
+} from "@react-email/components";
 import { Movie } from "../src/types";
 import { Tailwind } from "@react-email/tailwind";
 
@@ -13,7 +23,11 @@ function truncateDescription(text: string, maxLength: number = 300): string {
   return text.slice(0, maxLength).trim() + "...";
 }
 
-export default function MovieUpdates({ theaterName, movies, catalogUrl }: MovieUpdatesProps) {
+export default function MovieUpdates({
+  theaterName,
+  movies,
+  catalogUrl,
+}: MovieUpdatesProps) {
   return (
     <Html>
       <Tailwind>
@@ -21,7 +35,10 @@ export default function MovieUpdates({ theaterName, movies, catalogUrl }: MovieU
         <Body className="bg-[#171311] font-sans">
           <Container style={{ maxWidth: "600px" }}>
             <Heading className="text-white text-center mb-12 bg-[#AE1D29] py-6">
-              <Text className="text-3xl font-bold mb-1"> Filmes em Cartaz </Text>
+              <Text className="text-3xl font-bold mb-1">
+                {" "}
+                Filmes em Cartaz{" "}
+              </Text>
               <Text className="text-sm font-light ">{theaterName}</Text>
             </Heading>
 
@@ -88,7 +105,15 @@ export default function MovieUpdates({ theaterName, movies, catalogUrl }: MovieU
                       >
                         {movie.genre}
                       </span>
-                      <div style={{ color: "#AAA7A1", fontSize: "0.75rem", marginTop: "12px" }}>{movie.duration}</div>
+                      <div
+                        style={{
+                          color: "#AAA7A1",
+                          fontSize: "0.75rem",
+                          marginTop: "12px",
+                        }}
+                      >
+                        {movie.duration}
+                      </div>
                     </div>
 
                     <Text
