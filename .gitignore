@@ -1,12 +1,8 @@
 node_modules/
-*.log
 dist/
 build/
 .env
 *.tmp
-*.swp
-.DS_Store
-Thumbs.db
 .vscode/
 .idea/
 *.iml
